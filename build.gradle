@@ -119,7 +119,7 @@ repositories {
     }
 }
 
-def tool_version = "0.2.4"
+def tool_version = "0.2.5"
 
 dependencies {
     implementation "org.slf4j:slf4j-api:${slf4j_version}"

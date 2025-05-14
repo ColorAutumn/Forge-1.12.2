@@ -15,7 +15,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import static com.github.theword.queqiao.tool.utils.Tool.initTool;
 import static com.github.theword.queqiao.tool.utils.Tool.websocketManager;
 
-@Mod(modid = BaseConstant.MOD_ID, name = BaseConstant.MODULE_NAME)
+@Mod(modid = BaseConstant.MOD_ID, name = BaseConstant.MODULE_NAME, useMetadata = true, serverSideOnly =true)
 public class QueQiao {
 
     public static MinecraftServer minecraftServer;
@@ -33,7 +33,7 @@ public class QueQiao {
         websocketManager.startWebsocketOnServerStart();
     }
 
-    @SideOnly(Side.CLIENT)
+    @SideOnly(Side.SERVER)
     @Mod.EventHandler
     public void onServerStopping(FMLServerStoppingEvent event) {
         websocketManager.stopWebsocketByServerClose();

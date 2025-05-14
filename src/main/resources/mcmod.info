@@ -1,12 +1,17 @@
-[{
-	"modid": "${mod_id}",
-	"name": "${mod_name}",
-	"version": "${mod_version}",
-	"mcversion": "1.12.2",
-	"description": "${mod_description}",
-	"authorList": ["${mod_authors}"],
-	"credits": "${mod_credits}",
-	"url": "${mod_url}",
-	"updateJSON": "${mod_update_json}",
-	"logoFile": "${mod_logo_path}"
-}]
+[
+	{
+		"modid": "queqiao",
+		"name": "Que Qiao",
+		"version": "0.1.0",
+		"mcversion": "1.12.2",
+		"description": "服务器端专用 Mod，客户端可完全不装。",
+		"authorList": ["YourName"],
+		"credits": "Powered by Forge",
+		"url": "https://example.com/queqiao",
+		"updateJSON": "https://example.com/queqiao/update.json",
+		"logoFile": "assets/queqiao/logo.png",
+		"clientSideOnly": false,
+		"serverSideOnly": true,
+		"acceptableRemoteVersions": "*"
+	}
+]

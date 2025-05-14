@@ -36,7 +36,13 @@ public class EventProcessor {
     @SubscribeEvent
     public void onPlayerQuit(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.isCanceled() || !config.getSubscribeEvent().isPlayerQuit()) return;
-        ForgeServerPlayer player = getForgePlayer((EntityPlayerMP) event.player);
+        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) event.player;
+        String ip = entityPlayerMP.getPlayerIP();
+        if (ip == null) {
+            // 网络连接已关闭，跳过 IP 相关逻辑
+            return;
+        }
+        ForgeServerPlayer player = getForgePlayer(entityPlayerMP);
         ForgePlayerLoggedOutEvent forgePlayerLoggedOutEvent = new ForgePlayerLoggedOutEvent(player);
         sendWebsocketMessage(forgePlayerLoggedOutEvent);
     }
