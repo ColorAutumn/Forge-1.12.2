@@ -14,6 +14,7 @@ plugins {
     id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
     id 'com.modrinth.minotaur' version '2.+' apply false
     id 'org.jetbrains.changelog' version '2.2.1'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 apply from: 'gradle/scripts/helpers.gradle'
@@ -78,7 +79,7 @@ minecraft {
     useDependencyAccessTransformers.set(propertyBool('use_dependency_at_files'))
 
     username.set(propertyString('minecraft_username'))
-    
+
     // Add any additional tweaker classes here
     extraTweakClasses.addAll(propertyStringList('extra_tweak_classes'))
 
@@ -94,7 +95,7 @@ minecraft {
 
     if (propertyBool('use_tags')) {
         if (file('tags.properties').exists()) {
-            Properties props = new Properties().tap {  it.load(file('tags.properties').newInputStream()); it }
+            Properties props = new Properties().tap { it.load(file('tags.properties').newInputStream()); it }
             if (!props.isEmpty()) {
                 injectedTags.set(props.collectEntries { k, v -> [(k): interpolate(v)] })
             }
@@ -103,18 +104,33 @@ minecraft {
 }
 
 repositories {
+    mavenLocal()
     maven {
         name 'CleanroomMC Maven'
         url 'https://maven.cleanroommc.com'
     }
+    maven {
+        name 'GitHub Packages'
+        url 'https://maven.pkg.github.com/17TheWord/QueQiaoTool'
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("PACKAGE_READ_ONLY_TOKEN")
+        }
+    }
 }
 
+def tool_version = "0.2.4"
+
 dependencies {
+    implementation "org.slf4j:slf4j-api:${slf4j_version}"
+    implementation "org.slf4j:slf4j-simple:${slf4j_version}"
+    implementation "com.github.theword.queqiao:queqiao-tool:${tool_version}"
+    implementation "org.yaml:snakeyaml:${snakeyaml_version}"
     if (propertyBool('use_modern_java_syntax')) {
         annotationProcessor 'com.github.bsideup.jabel:jabel-javac-plugin:1.0.0'
         // Workaround for https://github.com/bsideup/jabel/issues/174
         annotationProcessor 'net.java.dev.jna:jna-platform:5.13.0'
-        compileOnly ('com.github.bsideup.jabel:jabel-javac-plugin:1.0.0') {
+        compileOnly('com.github.bsideup.jabel:jabel-javac-plugin:1.0.0') {
             transitive = false
         }
         // Allow jdk.unsupported classes like sun.misc.Unsafe, workaround for JDK-8206937 and fixes crashes in tests
@@ -130,13 +146,13 @@ dependencies {
     }
     if (propertyBool('use_mixins')) {
         String mixin = modUtils.enableMixins("zone.rong:mixinbooter:${propertyString('mixin_booter_version')}", propertyString('mixin_refmap'))
-        api (mixin) {
+        api(mixin) {
             transitive = false
         }
         annotationProcessor 'org.ow2.asm:asm-debug-all:5.2'
         annotationProcessor 'com.google.guava:guava:32.1.2-jre'
         annotationProcessor 'com.google.code.gson:gson:2.8.9'
-        annotationProcessor (mixin) {
+        annotationProcessor(mixin) {
             transitive = false
         }
     }
@@ -194,7 +210,7 @@ processResources {
                 'mixin_package': propertyString('mixin_package')
         )
     }
-    
+
     if (propertyBool('use_access_transformer')) {
         rename '(.+_at.cfg)', 'META-INF/$1'
     }
@@ -220,7 +236,7 @@ jar {
         attributes(attribute_map)
     }
     // Add all embedded dependencies into the jar
-    from(provider{ configurations.embed.collect {it.isDirectory() ? it : zipTree(it)} })
+    from(provider { configurations.embed.collect { it.isDirectory() ? it : zipTree(it) } })
 }
 
 idea {
@@ -357,3 +373,28 @@ idea.project.settings {
 
 apply from: 'gradle/scripts/publishing.gradle'
 apply from: 'gradle/scripts/extra.gradle'
+
+shadowJar {
+    archiveBaseName.set("${mod_name}-minecraft+origin")
+    archiveClassifier.set("")
+    destinationDirectory.set(file("./QueQiao-jar/${version}"))
+    manifest {
+        attributes(
+                'Main-Class': 'com.github.theword.queqiao.QueQiao' // 替换为你的主类路径
+        )
+    }
+    dependencies {
+        include(dependency("com.github.theword.queqiao:queqiao-tool:${tool_version}"))
+        include(dependency("org.java-websocket:Java-WebSocket:${java_websocket_version}"))
+        include(dependency("org.yaml:snakeyaml:${snakeyaml_version}"))
+        include(dependency("org.slf4j:slf4j-api:${slf4j_version}"))
+        include(dependency("org.slf4j:slf4j-simple:${slf4j_version}"))
+        include(dependency("com.google.code.gson:gson:${gson_version}"))
+        include(dependency("commons-io:commons-io:${commons_io_version}"))
+    }
+    mergeServiceFiles()
+}
+
+tasks.build {
+    dependsOn shadowJar
+}
